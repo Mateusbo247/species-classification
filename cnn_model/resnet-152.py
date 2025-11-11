@@ -5,11 +5,15 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import torch.nn.functional as F
 
-# Configurações
+# =====================================================
+# Configurações gerais
+# =====================================================
 data_dir = 'dataset-edit'
 batch_size = 32
 num_epochs = 60
@@ -17,8 +21,11 @@ num_classes = 15
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 early_stop_patience = 10
 model_save_path = 'best_model_resnet152.pt'
+os.makedirs("predictions", exist_ok=True)
 
-# Transformações
+# =====================================================
+# Transformações de imagem
+# =====================================================
 transform = {
     'train': transforms.Compose([
         transforms.RandomResizedCrop(224),
@@ -43,7 +50,9 @@ transform = {
     ])
 }
 
+# =====================================================
 # Datasets e Dataloaders
+# =====================================================
 image_datasets = {
     x: datasets.ImageFolder(os.path.join(data_dir, x), transform[x])
     for x in ['train', 'val', 'test']
@@ -54,7 +63,9 @@ dataloaders = {
     for x in ['train', 'val', 'test']
 }
 
-# Modelo ResNet-152 com fine-tuning na última camada
+# =====================================================
+# Modelo ResNet-152
+# =====================================================
 model = models.resnet152(pretrained=True)
 for param in model.parameters():
     param.requires_grad = False
@@ -62,16 +73,19 @@ for param in model.parameters():
 model.fc = nn.Linear(model.fc.in_features, num_classes)
 model = model.to(device)
 
+# =====================================================
 # Otimizador e função de perda
+# =====================================================
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.fc.parameters(), lr=1e-4)
 
-# Função de treinamento com early stopping e salvamento
+# =====================================================
+# Função de treinamento com early stopping
+# =====================================================
 def train_model():
     best_acc = 0.0
     best_model_wts = model.state_dict()
     history = []
-
     epochs_no_improve = 0
 
     for epoch in range(num_epochs):
@@ -107,13 +121,13 @@ def train_model():
             epoch_stats[f'{phase}_loss'] = epoch_loss
             epoch_stats[f'{phase}_acc'] = epoch_acc.item()
 
-            # Early stopping baseado na validação
+            # Early stopping com validação
             if phase == 'val':
                 if epoch_acc > best_acc:
                     best_acc = epoch_acc
                     best_model_wts = model.state_dict()
                     torch.save(model.state_dict(), model_save_path)
-                    print("🔽 Modelo salvo!")
+                    print(" Novo melhor modelo salvo!")
                     epochs_no_improve = 0
                 else:
                     epochs_no_improve += 1
@@ -121,18 +135,18 @@ def train_model():
         history.append(epoch_stats)
 
         if epochs_no_improve >= early_stop_patience:
-            print(f"\n⏹️ Early stopping após {early_stop_patience} épocas sem melhoria.")
+            print(f"\n Early stopping após {early_stop_patience} épocas sem melhoria.")
             break
 
-    # Restaurar melhor modelo
     model.load_state_dict(best_model_wts)
 
-    # Salvar histórico em CSV
     df = pd.DataFrame(history)
     df.to_csv('training_history.csv', index=False)
-    print("📄 Histórico de treino salvo em 'training_history.csv'.")
+    print(" Histórico de treino salvo em 'training_history.csv'.")
 
-# Avaliação no teste
+# =====================================================
+# Avaliação no conjunto de teste
+# =====================================================
 def evaluate_model():
     model.eval()
     all_preds = []
@@ -148,17 +162,78 @@ def evaluate_model():
 
     class_names = image_datasets['test'].classes
     report = classification_report(all_labels, all_preds, target_names=class_names, output_dict=True)
-
-    # Salvar como CSV
     df_report = pd.DataFrame(report).transpose()
     df_report.to_csv("classification_report_test.csv")
-    print("📄 Relatório de teste salvo em 'classification_report_test.csv'.")
+    print(" Relatório de teste salvo em 'classification_report_test.csv'.")
 
-    # Exibir resumo
     print("\nResumo do Teste:")
     print(classification_report(all_labels, all_preds, target_names=class_names))
 
-# Execução
+# =====================================================
+# Geração de CSV com probabilidades (PyTorch)
+# =====================================================
+def generate_predictions_csv(dataloader, model, dataset_name, output_dir="predictions"):
+    os.makedirs(output_dir, exist_ok=True)
+    model.eval()
+
+    all_probs = []
+    all_image_paths = []
+    all_labels = []
+
+    with torch.no_grad():
+        for inputs, labels in dataloader:
+            inputs = inputs.to(device)
+            outputs = model(inputs)
+            probs = F.softmax(outputs, dim=1).cpu().numpy()
+
+            all_probs.extend(probs)
+            all_labels.extend(labels.numpy())
+            all_image_paths.extend([path for path, _ in dataloader.dataset.samples])
+
+    image_ids = [os.path.basename(p) for p in all_image_paths]
+    class_labels = image_datasets[dataset_name].classes
+
+    df = pd.DataFrame(all_probs, columns=class_labels)
+    df.insert(0, "image_id", image_ids)
+    df["true_label"] = [class_labels[i] for i in all_labels]
+
+    csv_path = os.path.join(output_dir, f"{dataset_name}_predictions.csv")
+    df.to_csv(csv_path, index=False)
+    print(f" CSV de previsões salvo: {csv_path}")
+
+# =====================================================
+# Matriz de confusão
+# =====================================================
+def plot_confusion_matrix(dataloader, model):
+    model.eval()
+    all_preds, all_labels = [], []
+
+    with torch.no_grad():
+        for inputs, labels in dataloader:
+            inputs = inputs.to(device)
+            outputs = model(inputs)
+            preds = torch.argmax(outputs, dim=1)
+            all_preds.extend(preds.cpu().numpy())
+            all_labels.extend(labels.numpy())
+
+    class_names = dataloader.dataset.classes
+    cm = confusion_matrix(all_labels, all_preds)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
+    disp.plot(cmap="Blues", xticks_rotation=45)
+    plt.title("Confusion Matrix")
+    plt.show()
+
+# =====================================================
+# Execução principal
+# =====================================================
 if __name__ == "__main__":
     train_model()
     evaluate_model()
+
+    print("\n Gerando arquivos CSV com probabilidades...")
+    generate_predictions_csv(dataloaders["train"], model, "train")
+    generate_predictions_csv(dataloaders["val"], model, "val")
+    generate_predictions_csv(dataloaders["test"], model, "test")
+
+    print("\n Gerando matriz de confusão do conjunto de teste...")
+    plot_confusion_matrix(dataloaders["test"], model)
