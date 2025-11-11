@@ -1,0 +1,164 @@
+========================================================
+INSTALLATION AND EXECUTION MANUAL
+========================================================
+Deep Learning, Species Distribution Modeling, and Genetic Algorithm Integration
+========================================================
+
+1. SYSTEM REQUIREMENTS
+--------------------------------------------------------
+Operating System:
+- Linux (Ubuntu 20.04 or newer) — recommended
+- Windows 10/11
+- macOS (Intel or Apple Silicon)
+
+Hardware:
+- GPU with CUDA support (for ResNet training)
+- At least 16 GB RAM
+- 30 GB free disk space
+
+--------------------------------------------------------
+2. SOFTWARE DEPENDENCIES
+--------------------------------------------------------
+Python (for image classification and genetic algorithm)
+- Python 3.10+
+- TensorFlow 2.14+
+- Keras 3.0+
+- NumPy 1.25+
+- Pandas 2.0+
+- Scikit-learn 1.3+
+- OpenCV 4.8+
+- Pillow 10.0+
+- Matplotlib 3.8+
+- Albumentations 1.4+
+- DEAP 1.4+
+- tqdm (latest)
+
+R (for species distribution modeling)
+- raster
+- sp
+- dismo
+- sf
+- remotes
+- modelr
+
+Note: MaxEnt requires Java installed (check with 'java -version').
+
+--------------------------------------------------------
+3. ENVIRONMENT SETUP
+--------------------------------------------------------
+Python setup:
+
+python -m venv env
+source env/bin/activate    # Linux / macOS
+env\Scripts\activate     # Windows
+pip install --upgrade pip
+pip install tensorflow keras numpy pandas scikit-learn opencv-python pillow matplotlib albumentations deap tqdm
+
+R setup:
+
+install.packages(c("raster", "sp", "dismo", "sf", "remotes"))
+remotes::install_github("Model-R/modelr")
+
+--------------------------------------------------------
+4. PROJECT STRUCTURE
+--------------------------------------------------------
+project_root/
+│
+├── data/
+│   ├── images/
+│   ├── occurrences/
+│   ├── variables/
+│
+├── scripts/
+│   ├── assign_class_index1.py
+│   ├── dataset-division2.py
+│   ├── augmentation.py
+│   ├── resnet-50-csv.py
+│   ├── resnet-152.py
+│   ├── alg_gen15.py
+│   └── max-bio.R
+│
+├── model_outputs/
+│   ├── resnet50/
+│   ├── resnet152/
+│   ├── bioclim/
+│   ├── maxent/
+│   └── hybrid_model/
+│
+└── README.txt
+
+--------------------------------------------------------
+5. DATA PREPARATION AND AUGMENTATION
+--------------------------------------------------------
+Class Identification:
+python scripts/assign_class_index1.py
+
+Dataset Splitting:
+python scripts/dataset-division2.py
+
+Data Augmentation:
+python scripts/augmentation.py
+
+--------------------------------------------------------
+6. MODEL EXECUTION
+--------------------------------------------------------
+ResNet-50:
+python scripts/resnet-50-csv.py
+
+ResNet-152:
+python scripts/resnet-152.py
+
+MaxEnt and BIOCLIM:
+Rscript scripts/max-bio.R
+
+--------------------------------------------------------
+7. MODEL COMBINATION (GENETIC ALGORITHM)
+--------------------------------------------------------
+python scripts/alg_gen15.py
+
+Combines model predictions using DEAP genetic optimization.
+
+--------------------------------------------------------
+8. EXECUTION ORDER SUMMARY
+--------------------------------------------------------
+1. assign_class_index1.py
+2. dataset-division2.py
+3. augmentation.py
+4. resnet-50-csv.py
+5. resnet-152.py
+6. max-bio.R
+7. alg_gen15.py
+
+--------------------------------------------------------
+9. OUTPUTS
+--------------------------------------------------------
+ResNet models: .h5 + .csv
+MaxEnt/BIOCLIM: .tif predictive maps
+Genetic algorithm: .csv/.json ensemble weights
+Augmentation: expanded /train folder
+
+--------------------------------------------------------
+10. TROUBLESHOOTING
+--------------------------------------------------------
+Issue: No module named tensorflow
+→ Solution: Activate virtual environment
+
+Issue: Java not found in R
+→ Solution: Install Java JDK
+
+Issue: GPU not detected
+→ Solution: Match CUDA and TensorFlow versions
+
+Issue: Low accuracy
+→ Solution: Increase data or augmentation
+
+--------------------------------------------------------
+11. FINAL NOTES
+--------------------------------------------------------
+- Test each script independently before full execution.
+- Maintain consistent naming across datasets.
+- All logs and outputs are saved under model_outputs/.
+
+========================================================
+END OF DOCUMENT
+========================================================
