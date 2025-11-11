@@ -25,9 +25,6 @@ The project structure is as follows:
 CLASSIFICATION AND MODELING PIPELINE
 ==========================================
 
-This document describes the complete workflow, including preprocessing,
-model execution, and model combination steps.
-
 ------------------------------------------
 1. PREPROCESSING
 ------------------------------------------
@@ -83,7 +80,7 @@ model execution, and model combination steps.
   - Objective: find the optimal weighting among models to maximize global accuracy.
   - Output: optimized hybrid model and consolidated performance metrics.
 
-------------------------------------------
+
 END OF PROCEDURE
 ------------------------------------------
 
