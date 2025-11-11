@@ -19,3 +19,71 @@ The project structure is as follows:
 - Preparing data for analysis: Organizing data into tables that contain all predicted probabilities for ResNet and MaxEnt.
 - Execution of the Genetic Algorithm: Training of the Genetic Algorithm to generate 1 and 15 parameters for combining ResNet and MaxEnt.
 - Analysis of results: Analysis of metrics to compare the results obtained by all trained models.
+
+
+==========================================
+CLASSIFICATION AND MODELING PIPELINE
+==========================================
+
+This document describes the complete workflow, including preprocessing,
+model execution, and model combination steps.
+
+------------------------------------------
+1. PREPROCESSING
+------------------------------------------
+
+• Class Identification
+  - Script: assign_class_index1.py
+  - Purpose: assigns each image to its corresponding record and class.
+  - Input: image directory and metadata file (e.g., labels.csv)
+  - Output: dataset with numeric labels assigned to each class.
+
+• Dataset Split
+  - Script: dataset-division2.py
+  - Purpose: splits the dataset into training, validation, and test subsets.
+  - Parameters: adjustable ratios (e.g., 70% train, 15% validation, 15% test).
+  - Output: organized folders /train, /val, and /test.
+
+• Data Augmentation
+  - Script: augmentation.py
+  - Purpose: generates new samples from original images by applying
+             transformations (rotation, flipping, zoom, brightness, etc.).
+  - Output: expanded dataset for improved model generalization.
+
+------------------------------------------
+2. MODEL EXECUTION
+------------------------------------------
+
+• ResNet-50
+  - Script: resnet-50-csv.py
+  - Purpose: trains a ResNet-50 neural network and logs results in CSV format
+             (accuracy, loss, confusion matrix).
+  - Input: preprocessed dataset.
+  - Output: trained weights and performance metrics.
+
+• ResNet-152
+  - Script: resnet-152.py
+  - Purpose: trains a deeper ResNet-152 network for comparison with ResNet-50.
+  - Output: model weights and performance metrics.
+
+• MaxEnt and BIOCLIM
+  - Script: max-bio.R
+  - Purpose: runs ecological niche models using MaxEnt and BIOCLIM algorithms
+             via the ModleR package in R.
+  - Output: predictive maps and evaluation metrics (AUC, TSS, etc.).
+
+------------------------------------------
+3. MODEL COMBINATION
+------------------------------------------
+
+• Genetic Algorithm
+  - Script: alg_gen15.py
+  - Purpose: combines predictions from all models (ResNet-50, ResNet-152, MaxEnt, BIOCLIM)
+             through optimization with a genetic algorithm.
+  - Objective: find the optimal weighting among models to maximize global accuracy.
+  - Output: optimized hybrid model and consolidated performance metrics.
+
+------------------------------------------
+END OF PROCEDURE
+------------------------------------------
+
