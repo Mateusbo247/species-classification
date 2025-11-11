@@ -20,7 +20,7 @@ cleaned_data <- setup_sdmdata(species_name = species_list,
                               clean_nas = TRUE,
                               clean_uni = TRUE)
 
-# 2. Modelagem de distribuição para cada espécie
+# 2. Modelagem para cada espécie
 for (species in species_list) {
   do_many(species_name = species,
           predictors = env_layers,
