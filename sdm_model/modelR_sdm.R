@@ -5,7 +5,7 @@
 #Instalação do Model-R.
 
 install_user_dir <- "~/R"
-.libPaths( c( .libPaths(), install_user_dir ) ) ##Diretório onde é instalado os pacotes do R.
+.libPaths( c( .libPaths(), install_user_dir ) )
 
 ## Relação de Pacotes a serem instalados.
 packages <- c("rJava", "raster", "dplyr", "devtools", "maps", "maptools", "rgeos", "argparse", "remotes")
