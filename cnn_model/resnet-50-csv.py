@@ -19,19 +19,19 @@ random.seed(SEED)
 np.random.seed(SEED)
 tf.random.set_seed(SEED)
 
-# Configurações
+# Settings
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
 EPOCHS = 60
 NUM_CLASSES = 15
-OUTPUT_DIR = "./output_csv"  # Caminho para salvar os CSVs
+OUTPUT_DIR = "./output_csv"  # Pathway to save CSVs.
 
-# Caminhos para os conjuntos de dados
+# Pathways to datasets
 TRAIN_DIR = "./dataset/train"
 VAL_DIR = "./dataset/val"
 TEST_DIR = "./dataset/test"
 
-# Criar pasta para os CSVs, se necessário
+# Create a folder for the CSVs, if necessary.
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 CALLBACKS = [
@@ -41,7 +41,7 @@ CALLBACKS = [
 def preprocess_resnet(img):
     return preprocess_input(img)
 
-# Geradores de dados
+# Data generators
 train_datagen = ImageDataGenerator(preprocessing_function=preprocess_resnet, 
                                    rotation_range=20, 
                                    width_shift_range=0.2,
@@ -74,13 +74,13 @@ test_generator = val_test_datagen.flow_from_directory(
     shuffle=False
 )
 
-# Carregar a ResNet-50 sem a última camada (headless)
+# Loading ResNet-50 without the last layer (headless)
 base_model = ResNet50(weights="imagenet", include_top=False, input_shape=(IMG_SIZE[0], IMG_SIZE[1], 3))
 
-# Congelar camadas do modelo base
+# Freeze layers of the base model
 base_model.trainable = False
 
-# Construir o modelo
+# Build the model
 x = Flatten()(base_model.output)
 x = Dense(512, activation='relu')(x)
 x = Dropout(0.5)(x)
@@ -88,12 +88,12 @@ output = Dense(NUM_CLASSES, activation='softmax')(x)
 
 model = Model(inputs=base_model.input, outputs=output)
 
-# Compilar o modelo
+# Compile the model
 model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
-# Treinamento
+# Training
 history = model.fit(
     train_generator,
     epochs=EPOCHS,
@@ -101,44 +101,44 @@ history = model.fit(
     callbacks=CALLBACKS
 )
 
-# Salvar o modelo treinado
+# Save the trained model.
 model.save("resnet50_model.h5")
 
-# Avaliação no conjunto de teste
+# Evaluation in the test set
 test_loss, test_accuracy = model.evaluate(test_generator)
 print(f"Test Loss: {test_loss}")
 print(f"Test Accuracy: {test_accuracy}")
 
-# Função para gerar previsões e salvar CSV
+# Function to generate forecasts and save CSV files.
 def generate_predictions_csv(generator, model, output_path, dataset_name):
     """
-    Gera previsões para um conjunto de dados e salva um arquivo CSV com as probabilidades.
+    It generates predictions for a dataset and saves a CSV file with the probabilities.
     """
     predictions = model.predict(generator, verbose=1)
     image_ids = [os.path.basename(path) for path in generator.filenames]
     class_labels = list(generator.class_indices.keys())
 
-    # Criar DataFrame
+    # Create DataFrame
     df = pd.DataFrame(predictions, columns=class_labels)
     df.insert(0, 'image_id', image_ids)
 
-    # Salvar CSV
+    # Save CSV
     csv_path = os.path.join(output_path, f"{dataset_name}_predictions.csv")
     df.to_csv(csv_path, index=False)
     print(f"{dataset_name.capitalize()} CSV salvo em: {csv_path}")
 
-# Geração de arquivos CSV para cada conjunto
+# Generating CSV files for each set.
 generate_predictions_csv(train_generator, model, OUTPUT_DIR, "train")
 generate_predictions_csv(val_generator, model, OUTPUT_DIR, "validation")
 generate_predictions_csv(test_generator, model, OUTPUT_DIR, "test")
 
-# Predições no conjunto de teste
+# Predictions in the test set
 predictions = model.predict(test_generator)
 y_pred = np.argmax(predictions, axis=1)
 y_true = test_generator.classes
 class_labels = list(test_generator.class_indices.keys())
 
-# Matriz de confusão
+# Confusion matrix
 conf_matrix = confusion_matrix(y_true, y_pred)
 plt.figure(figsize=(10, 8))
 sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=class_labels, yticklabels=class_labels)
@@ -147,11 +147,11 @@ plt.xlabel('Predicted')
 plt.ylabel('True')
 plt.show()
 
-# Relatório de classificação
+# Classification report
 print("\nClassification Report:")
 print(classification_report(y_true, y_pred, target_names=class_labels))
 
-# Acurácia
+# Accurracy
 accuracy = accuracy_score(y_true, y_pred)
 print(f"Overall Accuracy: {accuracy}")
 
