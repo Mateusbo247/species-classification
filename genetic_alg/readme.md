@@ -121,26 +121,3 @@ python ga_1\_classic_tournament.py
 python ga_15_classic_tournament.py
 
 ------------------------------------------------------------------------
-
-# Evaluation Metric
-
-The GA optimizes classification accuracy based on argmax of combined
-probabilities.
-
-------------------------------------------------------------------------
-
-# Research Context
-
-This framework performs late fusion between:
-
--   A vision-based deep CNN (ResNet)
--   A species distribution model (Bioclim / MaxEnt)
-
-The Genetic Algorithm searches for the best linear combination of
-probabilities to maximize classification accuracy.
-
-------------------------------------------------------------------------
-
-# License
-
-For research and academic use.
