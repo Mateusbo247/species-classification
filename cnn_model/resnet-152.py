@@ -22,7 +22,7 @@ def set_seed(SEED=42):
 set_seed(42)
 
 # =====================================================
-# Configurações gerais
+# General settings
 # =====================================================
 data_dir = 'dataset'
 batch_size = 32
@@ -34,7 +34,7 @@ model_save_path = 'best_model_resnet152.pt'
 os.makedirs("predictions", exist_ok=True)
 
 # =====================================================
-# Transformações de imagem
+# Image transformations
 # =====================================================
 transform = {
     'train': transforms.Compose([
@@ -74,7 +74,7 @@ dataloaders = {
 }
 
 # =====================================================
-# Modelo ResNet-152
+# ResNet-152 model
 # =====================================================
 model = models.resnet152(pretrained=True)
 for param in model.parameters():
@@ -84,13 +84,13 @@ model.fc = nn.Linear(model.fc.in_features, num_classes)
 model = model.to(device)
 
 # =====================================================
-# Otimizador e função de perda
+# Optimizer and loss function
 # =====================================================
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.fc.parameters(), lr=1e-4)
 
 # =====================================================
-# Função de treinamento com early stopping
+# Training function with early stopping
 # =====================================================
 def train_model():
     best_acc = 0.0
@@ -155,7 +155,7 @@ def train_model():
     print(" Histórico de treino salvo em 'training_history.csv'.")
 
 # =====================================================
-# Avaliação no conjunto de teste
+# Evaluation in the test set
 # =====================================================
 def evaluate_model():
     model.eval()
@@ -180,7 +180,7 @@ def evaluate_model():
     print(classification_report(all_labels, all_preds, target_names=class_names))
 
 # =====================================================
-# Geração de CSV com probabilidades (PyTorch)
+# CSV generation with probabilities (PyTorch)
 # =====================================================
 def generate_predictions_csv(dataloader, model, dataset_name, output_dir="predictions"):
     os.makedirs(output_dir, exist_ok=True)
@@ -218,7 +218,7 @@ def generate_predictions_csv(dataloader, model, dataset_name, output_dir="predic
     print(f" CSV de previsões salvo: {csv_path}")
 
 # =====================================================
-# Matriz de confusão
+# Confusion matrix
 # =====================================================
 def plot_confusion_matrix(dataloader, model):
     model.eval()
@@ -240,15 +240,15 @@ def plot_confusion_matrix(dataloader, model):
     plt.show()
 
 # =====================================================
-# Execução principal
+# Main execution
 # =====================================================
 if __name__ == "__main__":
     train_model()
     evaluate_model()
 
-    print("\n Gerando arquivos CSV com probabilidades...")
+    print("\n Generating CSV files with probabilities...")
     generate_predictions_csv(dataloaders["val"], model, "val")
     generate_predictions_csv(dataloaders["test"], model, "test")
 
-    print("\n Gerando matriz de confusão do conjunto de teste...")
+    print("\n Generating confusion matrix from the test set...")
     plot_confusion_matrix(dataloaders["test"], model)
