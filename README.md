@@ -21,9 +21,7 @@ The project structure is as follows:
 - Analysis of results: Analysis of metrics to compare the results obtained by all trained models.
 
 
-====================================
-CLASSIFICATION AND MODELING PIPELINE
-====================================
+# CLASSIFICATION AND MODELING PIPELINE
 
 ------------------------------------------
 1. PREPROCESSING
@@ -84,8 +82,6 @@ CLASSIFICATION AND MODELING PIPELINE
 END OF PROCEDURE
 ------------------------------------------
 
-=============================
-Dataset
-=============================
+# Dataset
 
 The occurrence records and associated species distribution maps used in this study are publicly available through the Brazilian Biodiversity Information System (SISSGEO) at https://sissgeo.lncc.br/mapaRegistrosInicial.xhtml. These data can be accessed and visualized through the platform's public interface.
